@@ -2089,6 +2089,11 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                         .Select(p => p.GetGetMethod()).First();
 
         /// <summary>
+        /// Gets and sets custom ITypeMap creator. ITypeMaps are used to map between column namn and a memer on the type being mapped to
+        /// </summary>
+        public static Func<ITypeMap> TypeMapCreator { get; set; }
+
+        /// <summary>
         /// Gets type-map for the given type
         /// </summary>
         /// <returns>Type map implementation, DefaultTypeMap instance if no override present</returns>
@@ -2104,7 +2109,18 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                     map = (ITypeMap)_typeMaps[type];
                     if (map == null)
                     {
-                        map = new DefaultTypeMap(type);
+                        var creator = TypeMapCreator;
+
+                        if (creator != null)
+                        {
+                            map = creator();
+                        }
+
+                        if (map == null)
+                        {
+                            map = new DefaultTypeMap(type);
+                        }
+
                         _typeMaps[type] = map;
                     }
                 }
